@@ -1,0 +1,32 @@
+id: daily_stock_sync
+namespace: estoque.ckch
+
+description: Atualiza saldo diario direto no PostgreSQL.
+
+triggers:
+  - id: every_day
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 7 * * *"
+
+tasks:
+  - id: daily_job
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    workingDirectory: /opt/ck-ch
+    env:
+      PYTHONIOENCODING: utf-8
+      RUN_DATE: "{{ trigger.date | date('yyyy-MM-dd') }}"
+      MAGENTO_BASE_URL: "https://www.bringit.com.br"
+      MAGENTO_API_KEY: "{{ secret('MAGENTO_API_KEY') }}"
+      PROXIES_FILE: "/opt/ck-ch/webshare_proxies.txt"
+      PGHOST: "187.77.37.48"
+      PGPORT: "5432"
+      PGUSER: "bbdi"
+      PGDATABASE: "estoque_bgt"
+      PGPASSWORD: "{{ secret('PG_PASSWORD') }}"
+      MAX_WORKERS: "80"
+      RATE_LIMIT: "0.02"
+    commands:
+      - |
+        python daily_job.py

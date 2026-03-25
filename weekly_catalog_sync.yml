@@ -1,0 +1,27 @@
+id: weekly_catalog_sync
+namespace: estoque.ckch
+
+description: Atualiza o catalogo direto no PostgreSQL.
+
+triggers:
+  - id: every_week
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 6 * * 1"
+
+tasks:
+  - id: weekly_job
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    workingDirectory: /opt/ck-ch
+    env:
+      PYTHONIOENCODING: utf-8
+      RUN_DATE: "{{ trigger.date | date('yyyy-MM-dd') }}"
+      PGHOST: "187.77.37.48"
+      PGPORT: "5432"
+      PGUSER: "bbdi"
+      PGDATABASE: "estoque_bgt"
+      PGPASSWORD: "{{ secret('PG_PASSWORD') }}"
+    commands:
+      - |
+        python weekly_job.py
